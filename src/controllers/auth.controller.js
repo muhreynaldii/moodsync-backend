@@ -124,7 +124,8 @@ function createAccessToken(userId) {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: "10m",
+      // TO BE CHANGED (DEBUG PURPOSE)
+      expiresIn: "30d",
     }
   );
 }
