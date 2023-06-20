@@ -4,7 +4,7 @@ const { HttpError } = require("../error");
 const io = require("../util/socketio");
 
 const get = errorHandler(async (req, res) => {
-  const data = await models.Meeting.find().exec();
+  const data = await models.Meeting.find().sort({ createdAt: "desc" });
   if (!data) {
     throw new HttpError(400, "Meeting not found");
   }
@@ -15,6 +15,30 @@ const get = errorHandler(async (req, res) => {
   //     .to(`SessionA`)
   //     .emit("RECOGNITION_DATA_ADDED", { datetime: new Date() });
   // }, 2000);
+  return data;
+});
+
+const getById = errorHandler(async (req, res) => {
+  const data = await models.Meeting.findById(req.params.id);
+  if (!data) {
+    throw new HttpError(400, "Meeting not found");
+  }
+  return data;
+});
+
+const getByCode = errorHandler(async (req, res) => {
+  const data = await models.Meeting.findOne({ code: req.params.code });
+  if (!data) {
+    throw new HttpError(400, "Meeting not found");
+  }
+  return data;
+});
+
+const getCount = errorHandler(async (req, res) => {
+  const data = await models.Meeting.count();
+  if (!data) {
+    throw new HttpError(400, "Meeting not found");
+  }
   return data;
 });
 
@@ -48,6 +72,9 @@ const remove = errorHandler(async (req, res) => {
 
 module.exports = {
   get,
+  getById,
+  getByCode,
+  getCount,
   create,
   update,
   remove,

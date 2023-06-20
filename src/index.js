@@ -1,11 +1,18 @@
 const express = require("express");
 const routes = require("./routes");
 const http = require("http");
+const cors = require("cors");
 const connectToDatabase = require("./database");
 const app = express();
 const port = process.env.PORT || 3000;
 
+const corsOption = {
+  origin: "*",
+};
+
+app.use(cors(corsOption));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", routes);
 
@@ -23,9 +30,11 @@ async function startServer() {
   const httpServer = http.createServer(app);
   require("./util/socketio")(httpServer);
   require("./util/socketioRoom");
+  // require("./util/openVidu");
 
   httpServer.listen(port, () => {
     console.log(`Server listening at http://localhost:${port}`);
+    console.log(`Server connecting to OpenVidu at ${process.env.OPENVIDU_URL}`);
   });
 }
 

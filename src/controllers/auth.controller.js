@@ -9,6 +9,7 @@ const signup = errorHandler(
     const userDoc = models.User({
       username: req.body.username,
       password: await argon2.hash(req.body.password),
+      role: "teacher",
     });
     const refreshTokenDoc = models.RefreshToken({
       owner: userDoc.id,
