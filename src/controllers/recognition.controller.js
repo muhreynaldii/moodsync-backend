@@ -428,19 +428,23 @@ const getSummary = errorHandler(async (req, res) => {
 
 const getCurrent = errorHandler(async (req, res) => {
   const { userId, meetingId, createdAt } = req.query;
-  console.log("req.query", req.query);
   const userIdArray = Array.isArray(userId) ? userId : [userId];
   const recognition = await models.Recognition.find({
     // userId: { $in: userIdArray },
     meetingId: mongoose.Types.ObjectId(meetingId),
     createdAt,
-  });
-  console.log("recognition", recognition);
-  // const userIds = recognition.map((user) => user._id);
+  }).populate("userId", "username");
   if (!recognition.length) {
     throw new HttpError(400, "Recognition not found");
   }
-  return recognition;
+  const response = recognition.map((recognitionItem) => {
+    return {
+      ...recognitionItem._doc,
+      username: recognitionItem.userId.username,
+    };
+  });
+
+  return response;
 });
 
 const create = errorHandler(async (req, res) => {
