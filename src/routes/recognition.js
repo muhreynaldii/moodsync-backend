@@ -14,6 +14,7 @@ router.get(
   controllers.recognition.getSummary
 );
 router.get("/current", controllers.recognition.getCurrent);
+router.get("/currentTotal", controllers.recognition.getCurrentTotal);
 router.get("/:id", middlewares.verifyAccessToken, controllers.recognition.get);
 router.get(
   "/:id/:userId",

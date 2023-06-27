@@ -447,6 +447,51 @@ const getCurrent = errorHandler(async (req, res) => {
   return response;
 });
 
+const getCurrentTotal = errorHandler(async (req, res) => {
+  const { userId, meetingId, createdAt } = req.query;
+  const userIdArray = Array.isArray(userId) ? userId : [userId];
+  const recognitions = await models.Recognition.find({
+    // userId: { $in: userIdArray },
+    meetingId: mongoose.Types.ObjectId(meetingId),
+    createdAt,
+  }).populate("userId", "username");
+  if (!recognitions.length) {
+    throw new HttpError(400, "Recognition not found");
+  }
+
+  // Objek untuk menyimpan total emosi dari beberapa pengguna
+  const totalEmotions = {
+    neutral: 0,
+    happy: 0,
+    sad: 0,
+    angry: 0,
+    fearful: 0,
+    disgusted: 0,
+    surprised: 0,
+  };
+
+  // Mengumpulkan total emosi dari beberapa pengguna
+  recognitions.forEach((recognitionItem) => {
+    totalEmotions.neutral += recognitionItem.neutral;
+    totalEmotions.happy += recognitionItem.happy;
+    totalEmotions.sad += recognitionItem.sad;
+    totalEmotions.angry += recognitionItem.angry;
+    totalEmotions.fearful += recognitionItem.fearful;
+    totalEmotions.disgusted += recognitionItem.disgusted;
+    totalEmotions.surprised += recognitionItem.surprised;
+  });
+
+  const response = {
+    recognitions: recognitions.map((recognitionItem) => ({
+      ...recognitionItem._doc,
+      username: recognitionItem.userId.username,
+    })),
+    totalEmotions,
+  };
+
+  return response;
+});
+
 const create = errorHandler(async (req, res) => {
   const recognition = new models.Recognition(
     req.body
@@ -508,4 +553,5 @@ module.exports = {
   create,
   update,
   remove,
+  getCurrentTotal,
 };
