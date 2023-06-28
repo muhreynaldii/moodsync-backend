@@ -35,7 +35,7 @@ const me = errorHandler(async (req, res) => {
   return userDoc;
 });
 
-const test = errorHandler(async (req, res) => {
+const postNewUsers = errorHandler(async (req, res) => {
   const data = new models.User({
     username: req.body.username,
   });
@@ -46,7 +46,7 @@ const test = errorHandler(async (req, res) => {
   return savedData;
 });
 
-const testt = errorHandler(async (req, res) => {
+const getAllUsers = errorHandler(async (req, res) => {
   const data = await models.User.find({});
   if (!data) {
     throw new HttpError(400, "User not found");
@@ -58,6 +58,6 @@ module.exports = {
   getIds,
   getByUsername,
   me,
-  test,
-  testt,
+  postNewUsers,
+  getAllUsers,
 };
