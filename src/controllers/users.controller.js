@@ -27,6 +27,14 @@ const getByUsername = errorHandler(async (req, res) => {
   return userDoc;
 });
 
+const getById = errorHandler(async (req, res) => {
+  const userDoc = await models.User.findById(req.params.id).exec();
+  if (!userDoc) {
+    throw new HttpError(400, "User not found");
+  }
+  return userDoc;
+});
+
 const me = errorHandler(async (req, res) => {
   const userDoc = await models.User.findById(req.userId).exec();
   if (!userDoc) {
@@ -60,4 +68,5 @@ module.exports = {
   me,
   postNewUsers,
   getAllUsers,
+  getById,
 };
