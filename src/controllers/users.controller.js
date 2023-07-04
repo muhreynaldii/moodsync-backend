@@ -179,13 +179,22 @@ const getAllUsers = errorHandler(async (req, res) => {
   return data;
 });
 
+const getAllStudent = errorHandler(async (req, res) => {
+  const users = await models.User.find({ password: { $exists: false } });
+  if (!users) {
+    throw new HttpError(400, "User not found");
+  }
+  return users;
+});
+
 module.exports = {
   getIds,
   getByUsername,
   me,
   postNewUsers,
-  getAllUsers,
   getById,
   getOverview,
   getSummary,
+  getAllStudent,
+  getAllUsers,
 };
