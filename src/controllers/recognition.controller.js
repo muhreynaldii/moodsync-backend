@@ -7,7 +7,12 @@ const io = require("../util/socketio");
 let recognitionInterval = {};
 
 const get = errorHandler(async (req, res) => {
-  const [meeting, recognitionDetail, recognitionsOverview, recognitionsSummary] = await Promise.all([
+  const [
+    meeting,
+    recognitionDetail,
+    recognitionsOverview,
+    recognitionsSummary,
+  ] = await Promise.all([
     models.Meeting.findById(req.params.id).lean(),
     models.Recognition.aggregate([
       { $match: { meetingId: mongoose.Types.ObjectId(req.params.id) } },
@@ -80,7 +85,14 @@ const get = errorHandler(async (req, res) => {
           },
           count: {
             $sum: {
-              $add: ["$happy", "$sad", "$angry", "$fearful", "$disgusted", "$surprised"],
+              $add: [
+                "$happy",
+                "$sad",
+                "$angry",
+                "$fearful",
+                "$disgusted",
+                "$surprised",
+              ],
             },
           },
         },
@@ -114,7 +126,15 @@ const get = errorHandler(async (req, res) => {
       { $unset: ["_id", "count"] },
     ]),
   ]);
-  const labelsOverview = ["Neutral", "Happy", "Sad", "Angry", "Fearful", "Disgusted", "Surprised"];
+  const labelsOverview = [
+    "Neutral",
+    "Happy",
+    "Sad",
+    "Angry",
+    "Fearful",
+    "Disgusted",
+    "Surprised",
+  ];
   const labelsSummary = ["Positive", "Negative"];
   if (!meeting) {
     throw new HttpError(400, "Recognition not found");
@@ -145,7 +165,13 @@ const get = errorHandler(async (req, res) => {
 });
 
 const getById = errorHandler(async (req, res) => {
-  const [meeting, user, recognitionDetail, recognitionsOverview, recognitionsSummary] = await Promise.all([
+  const [
+    meeting,
+    user,
+    recognitionDetail,
+    recognitionsOverview,
+    recognitionsSummary,
+  ] = await Promise.all([
     models.Meeting.findById(req.params.id).lean(),
     models.User.findById(req.params.userId).lean(),
     req.query.limit
@@ -212,7 +238,14 @@ const getById = errorHandler(async (req, res) => {
           },
           count: {
             $sum: {
-              $add: ["$happy", "$sad", "$angry", "$fearful", "$disgusted", "$surprised"],
+              $add: [
+                "$happy",
+                "$sad",
+                "$angry",
+                "$fearful",
+                "$disgusted",
+                "$surprised",
+              ],
             },
           },
         },
@@ -246,7 +279,15 @@ const getById = errorHandler(async (req, res) => {
       { $unset: ["_id", "count"] },
     ]),
   ]);
-  const labelsOverview = ["Neutral", "Happy", "Sad", "Angry", "Fearful", "Disgusted", "Surprised"];
+  const labelsOverview = [
+    "Neutral",
+    "Happy",
+    "Sad",
+    "Angry",
+    "Fearful",
+    "Disgusted",
+    "Surprised",
+  ];
   const labelsSummary = ["Positive", "Negative"];
   if (!meeting || !user) {
     throw new HttpError(400, "Recognition not found");
@@ -311,7 +352,15 @@ const getOverview = errorHandler(async (req, res) => {
     },
     { $unset: ["_id"] },
   ]);
-  const labels = ["Neutral", "Happy", "Sad", "Angry", "Fearful", "Disgusted", "Surprised"];
+  const labels = [
+    "Neutral",
+    "Happy",
+    "Sad",
+    "Angry",
+    "Fearful",
+    "Disgusted",
+    "Surprised",
+  ];
   return data[0] ? { labels, datas: Object.values(data[0]) } : {};
 });
 
@@ -333,7 +382,14 @@ const getSummary = errorHandler(async (req, res) => {
         },
         count: {
           $sum: {
-            $add: ["$happy", "$sad", "$angry", "$fearful", "$disgusted", "$surprised"],
+            $add: [
+              "$happy",
+              "$sad",
+              "$angry",
+              "$fearful",
+              "$disgusted",
+              "$surprised",
+            ],
           },
         },
       },
@@ -429,12 +485,26 @@ const getCurrentTotal = errorHandler(async (req, res) => {
     totalEmotions.surprised += recognitionItem.surprised;
   });
 
+  // Calculate the total number of users
+  const totalUsers = recognitions.length;
+
+  // Calculate the percentage of each emotion
+  const totalEmotionsPercentage = {
+    neutral: (totalEmotions.neutral / totalUsers) * 100,
+    happy: (totalEmotions.happy / totalUsers) * 100,
+    sad: (totalEmotions.sad / totalUsers) * 100,
+    angry: (totalEmotions.angry / totalUsers) * 100,
+    fearful: (totalEmotions.fearful / totalUsers) * 100,
+    disgusted: (totalEmotions.disgusted / totalUsers) * 100,
+    surprised: (totalEmotions.surprised / totalUsers) * 100,
+  };
+
   const response = {
     recognitions: recognitions.map((recognitionItem) => ({
       ...recognitionItem._doc,
       username: recognitionItem.userId.username,
     })),
-    totalEmotions,
+    totalEmotionsPercentage,
   };
 
   return response;
@@ -450,7 +520,9 @@ const create = errorHandler(async (req, res) => {
     throw new HttpError(400, "Data can't be saved!");
   }
   const socket = io();
-  socket.to([req.body.meetingId, `${req.body.meetingId}-${req.body.userId}`]).emit("RECOGNITION_DATA_ADDED");
+  socket
+    .to([req.body.meetingId, `${req.body.meetingId}-${req.body.userId}`])
+    .emit("RECOGNITION_DATA_ADDED");
   return savedData;
 });
 
