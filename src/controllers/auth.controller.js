@@ -31,9 +31,7 @@ const signup = errorHandler(
 
 const login = errorHandler(
   withTransaction(async (req, res, session) => {
-    const userDoc = await models.User.findOne({ username: req.body.username })
-      .select("+password")
-      .exec();
+    const userDoc = await models.User.findOne({ username: req.body.username }).select("+password").exec();
     if (!userDoc) {
       throw new HttpError(401, "Wrong username or password");
     }
@@ -58,23 +56,15 @@ const login = errorHandler(
 
 const newRefreshToken = errorHandler(
   withTransaction(async (req, res, session) => {
-    const currentRefreshToken = await validateRefreshToken(
-      req.body.refreshToken
-    );
+    const currentRefreshToken = await validateRefreshToken(req.body.refreshToken);
     const refreshTokenDoc = models.RefreshToken({
       owner: currentRefreshToken.userId,
     });
 
     await refreshTokenDoc.save({ session });
-    await models.RefreshToken.deleteOne(
-      { _id: currentRefreshToken.tokenId },
-      { session }
-    );
+    await models.RefreshToken.deleteOne({ _id: currentRefreshToken.tokenId }, { session });
 
-    const refreshToken = createRefreshToken(
-      currentRefreshToken.userId,
-      refreshTokenDoc.id
-    );
+    const refreshToken = createRefreshToken(currentRefreshToken.userId, refreshTokenDoc.id);
     const accessToken = createAccessToken(currentRefreshToken.userId);
 
     return {
@@ -99,10 +89,7 @@ const newAccessToken = errorHandler(async (req, res) => {
 const logout = errorHandler(
   withTransaction(async (req, res, session) => {
     const refreshToken = await validateRefreshToken(req.body.refreshToken);
-    await models.RefreshToken.deleteOne(
-      { _id: refreshToken.tokenId },
-      { session }
-    );
+    await models.RefreshToken.deleteOne({ _id: refreshToken.tokenId }, { session });
     return { success: true };
   })
 );
@@ -110,10 +97,7 @@ const logout = errorHandler(
 const logoutAll = errorHandler(
   withTransaction(async (req, res, session) => {
     const refreshToken = await validateRefreshToken(req.body.refreshToken);
-    await models.RefreshToken.deleteMany(
-      { owner: refreshToken.userId },
-      { session }
-    );
+    await models.RefreshToken.deleteMany({ owner: refreshToken.userId }, { session });
     return { success: true };
   })
 );

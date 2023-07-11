@@ -4,7 +4,7 @@ const { HttpError } = require("../error");
 const io = require("../util/socketio");
 
 const get = errorHandler(async (req, res) => {
-  const data = await models.Meeting.find().sort({ createdAt: "desc" });
+  const data = await models.Meeting.find({}).sort({ createdAt: "desc" });
   if (!data) {
     throw new HttpError(400, "Meeting not found");
   }

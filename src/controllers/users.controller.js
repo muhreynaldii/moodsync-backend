@@ -6,10 +6,7 @@ const mongoose = require("mongoose");
 const getIds = errorHandler(async (req, res) => {
   const usernames = req.query.usernames;
   const usernamesArray = Array.isArray(usernames) ? usernames : [usernames];
-  const users = await models.User.find(
-    { username: { $in: usernamesArray } },
-    "_id username"
-  );
+  const users = await models.User.find({ username: { $in: usernamesArray } }, "_id username");
   // console.log("users", users);
   // const userIds = users.map((user) => user._id);
   if (!users.length) {
@@ -71,15 +68,7 @@ const getOverview = errorHandler(async (req, res) => {
     },
     { $unset: ["_id"] },
   ]);
-  const labels = [
-    "Neutral",
-    "Happy",
-    "Sad",
-    "Angry",
-    "Fearful",
-    "Disgusted",
-    "Surprised",
-  ];
+  const labels = ["Neutral", "Happy", "Sad", "Angry", "Fearful", "Disgusted", "Surprised"];
   if (!data.length) {
     throw new HttpError(400, "User not found");
   }
@@ -105,14 +94,7 @@ const getSummary = errorHandler(async (req, res) => {
         },
         count: {
           $sum: {
-            $add: [
-              "$happy",
-              "$sad",
-              "$angry",
-              "$fearful",
-              "$disgusted",
-              "$surprised",
-            ],
+            $add: ["$happy", "$sad", "$angry", "$fearful", "$disgusted", "$surprised"],
           },
         },
       },
@@ -172,7 +154,14 @@ const postNewUsers = errorHandler(async (req, res) => {
 });
 
 const getAllUsers = errorHandler(async (req, res) => {
-  const data = await models.User.find({});
+  const { meetingId } = req.query;
+  const data = await models.User.find({
+    ...(meetingId && {
+      _id: {
+        $in: await models.Recognition.find({ meetingId }).distinct("userId"),
+      },
+    }),
+  }).sort({ createdAt: "desc" });
   if (!data) {
     throw new HttpError(400, "User not found");
   }
@@ -187,6 +176,33 @@ const getAllStudent = errorHandler(async (req, res) => {
   return users;
 });
 
+const getCount = errorHandler(async (req, res) => {
+  const data = await models.User.count();
+  if (!data) {
+    throw new HttpError(400, "User not found");
+  }
+  return data;
+});
+
+const update = errorHandler(async (req, res) => {
+  const data = await models.User.findByIdAndUpdate(req.params.id, req.body, {
+    upsert: true,
+    new: true,
+  });
+  if (!data) {
+    throw new HttpError(400, "User not found");
+  }
+  return data;
+});
+
+const remove = errorHandler(async (req, res) => {
+  const data = await models.User.findById(req.params.id);
+  if (!data) {
+    throw new HttpError(400, "User not found");
+  }
+  return await data.remove();
+});
+
 module.exports = {
   getIds,
   getByUsername,
@@ -195,6 +211,9 @@ module.exports = {
   getById,
   getOverview,
   getSummary,
+  getCount,
+  update,
+  remove,
   getAllStudent,
   getAllUsers,
 };
