@@ -3,6 +3,7 @@ const controllers = require("../controllers");
 const middlewares = require("../middlewares");
 const router = express.Router();
 
+router.get("/student", controllers.users.getAllStudent);
 router.get("/me", middlewares.verifyAccessToken, controllers.users.me);
 router.get("/count", middlewares.verifyAccessToken, controllers.users.getCount);
 router.get("/username/ids", controllers.users.getIds);

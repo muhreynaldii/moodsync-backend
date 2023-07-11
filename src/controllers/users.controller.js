@@ -168,6 +168,14 @@ const getAllUsers = errorHandler(async (req, res) => {
   return data;
 });
 
+const getAllStudent = errorHandler(async (req, res) => {
+  const users = await models.User.find({ password: { $exists: false } });
+  if (!users) {
+    throw new HttpError(400, "User not found");
+  }
+  return users;
+});
+
 const getCount = errorHandler(async (req, res) => {
   const data = await models.User.count();
   if (!data) {
@@ -200,11 +208,12 @@ module.exports = {
   getByUsername,
   me,
   postNewUsers,
-  getAllUsers,
   getById,
   getOverview,
   getSummary,
   getCount,
   update,
   remove,
+  getAllStudent,
+  getAllUsers,
 };
