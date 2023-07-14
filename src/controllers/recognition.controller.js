@@ -83,6 +83,7 @@ const get = errorHandler(async (req, res) => {
           negative: {
             $sum: { $add: ["$sad", "$angry", "$fearful", "$disgusted"] },
           },
+          neutral: { $sum: { $add: ["$neutral"] } },
           count: {
             $sum: {
               $add: [
@@ -92,6 +93,7 @@ const get = errorHandler(async (req, res) => {
                 "$fearful",
                 "$disgusted",
                 "$surprised",
+                "$neutral",
               ],
             },
           },
@@ -121,6 +123,17 @@ const get = errorHandler(async (req, res) => {
               },
             ],
           },
+          neutral: {
+            $cond: [
+              { $eq: ["$count", 0] },
+              0,
+              {
+                $round: {
+                  $multiply: [{ $divide: ["$neutral", "$count"] }, 100],
+                },
+              },
+            ],
+          },
         },
       },
       { $unset: ["_id", "count"] },
@@ -135,7 +148,7 @@ const get = errorHandler(async (req, res) => {
     "Disgusted",
     "Surprised",
   ];
-  const labelsSummary = ["Positive", "Negative"];
+  const labelsSummary = ["Positive", "Negative", "Neutral"];
   if (!meeting) {
     throw new HttpError(400, "Recognition not found");
   }
@@ -236,6 +249,7 @@ const getById = errorHandler(async (req, res) => {
           negative: {
             $sum: { $add: ["$sad", "$angry", "$fearful", "$disgusted"] },
           },
+          neutral: { $sum: { $add: ["$neutral"] } },
           count: {
             $sum: {
               $add: [
@@ -245,6 +259,7 @@ const getById = errorHandler(async (req, res) => {
                 "$fearful",
                 "$disgusted",
                 "$surprised",
+                "$neutral",
               ],
             },
           },
@@ -274,6 +289,17 @@ const getById = errorHandler(async (req, res) => {
               },
             ],
           },
+          neutral: {
+            $cond: [
+              { $eq: ["$count", 0] },
+              0,
+              {
+                $round: {
+                  $multiply: [{ $divide: ["$neutral", "$count"] }, 100],
+                },
+              },
+            ],
+          },
         },
       },
       { $unset: ["_id", "count"] },
@@ -288,7 +314,7 @@ const getById = errorHandler(async (req, res) => {
     "Disgusted",
     "Surprised",
   ];
-  const labelsSummary = ["Positive", "Negative"];
+  const labelsSummary = ["Positive", "Negative", "Neutral"];
   if (!meeting || !user) {
     throw new HttpError(400, "Recognition not found");
   }
@@ -380,6 +406,7 @@ const getSummary = errorHandler(async (req, res) => {
         negative: {
           $sum: { $add: ["$sad", "$angry", "$fearful", "$disgusted"] },
         },
+        neutral: { $sum: { $add: ["$neutral"] } },
         count: {
           $sum: {
             $add: [
@@ -389,6 +416,7 @@ const getSummary = errorHandler(async (req, res) => {
               "$fearful",
               "$disgusted",
               "$surprised",
+              "$neutral",
             ],
           },
         },
@@ -418,11 +446,22 @@ const getSummary = errorHandler(async (req, res) => {
             },
           ],
         },
+        neutral: {
+          $cond: [
+            { $eq: ["$count", 0] },
+            0,
+            {
+              $round: {
+                $multiply: [{ $divide: ["$neutral", "$count"] }, 100],
+              },
+            },
+          ],
+        },
       },
     },
     { $unset: ["_id", "count"] },
   ]);
-  const labels = ["Positive", "Negative"];
+  const labels = ["Positive", "Negative", "Neutral"];
   return data[0] ? { labels, datas: Object.values(data[0]) } : {};
 });
 
