@@ -6,7 +6,10 @@ const mongoose = require("mongoose");
 const getIds = errorHandler(async (req, res) => {
   const usernames = req.query.usernames;
   const usernamesArray = Array.isArray(usernames) ? usernames : [usernames];
-  const users = await models.User.find({ username: { $in: usernamesArray } }, "_id username");
+  const users = await models.User.find(
+    { username: { $in: usernamesArray } },
+    "_id username"
+  );
   // console.log("users", users);
   // const userIds = users.map((user) => user._id);
   if (!users.length) {
@@ -68,7 +71,15 @@ const getOverview = errorHandler(async (req, res) => {
     },
     { $unset: ["_id"] },
   ]);
-  const labels = ["Neutral", "Happy", "Sad", "Angry", "Fearful", "Disgusted", "Surprised"];
+  const labels = [
+    "Neutral",
+    "Happy",
+    "Sad",
+    "Angry",
+    "Fearful",
+    "Disgusted",
+    "Surprised",
+  ];
   if (!data.length) {
     throw new HttpError(400, "User not found");
   }
@@ -92,9 +103,18 @@ const getSummary = errorHandler(async (req, res) => {
         negative: {
           $sum: { $add: ["$sad", "$angry", "$fearful", "$disgusted"] },
         },
+        neutral: { $sum: { $add: ["$neutral"] } },
         count: {
           $sum: {
-            $add: ["$happy", "$sad", "$angry", "$fearful", "$disgusted", "$surprised"],
+            $add: [
+              "$happy",
+              "$sad",
+              "$angry",
+              "$fearful",
+              "$disgusted",
+              "$surprised",
+              "$neutral",
+            ],
           },
         },
       },
@@ -123,11 +143,22 @@ const getSummary = errorHandler(async (req, res) => {
             },
           ],
         },
+        neutral: {
+          $cond: [
+            { $eq: ["$count", 0] },
+            0,
+            {
+              $round: {
+                $multiply: [{ $divide: ["$neutral", "$count"] }, 100],
+              },
+            },
+          ],
+        },
       },
     },
     { $unset: ["_id", "count"] },
   ]);
-  const labels = ["Positive", "Negative"];
+  const labels = ["Positive", "Negative", "Neutral"];
   if (!data.length) {
     throw new HttpError(400, "User not found");
   }
